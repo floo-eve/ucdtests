@@ -1,0 +1,18 @@
+[Unit]
+Description=ucdserver  daemon
+After=network.target 
+
+[Service]
+Type=forking
+#PIDFile=/var/run/sshd.pid
+#EnvironmentFile=/etc/sysconfig/sshd
+ExecStart=/opt/ibm-ucd/server/bin/server start
+ExecStop=/opt/ibm-ucd/server/bin/server stop
+#ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+#Restart=on-failure
+#RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+

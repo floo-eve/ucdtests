@@ -1,0 +1,6 @@
+.vagrant
+*.retry
+control.pub
+*.tar.gz
+*.zip
+

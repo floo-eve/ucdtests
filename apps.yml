@@ -1,0 +1,35 @@
+--- 
+- hosts: 
+  - app01 
+  - app02
+  remote_user: vagrant 
+  become: yes 
+  vars: 
+    java_file: jre-8u121-linux-x64.tar.gz 
+    install_folder: /opt 
+    java_name: "{{install_folder}}/jre1.8.0_121" 
+    java_archive: "{{install_folder}}/{{java_file}}"  
+  
+  tasks: 
+  - name: install unzip package 
+    apt: 
+      name: "{{item}}" 
+      state: present
+    with_items: 
+    - unzip 
+    - net-tools
+    
+  - name: Install java 
+    unarchive: 
+      src: files/{{java_file}} 
+      dest: "{{install_folder}}" 
+      creates: "{{java_name}}" 
+
+  - name: set correct java version  
+    alternatives: 
+      name: java 
+      link: /usr/bin/java 
+      path: "{{java_name}}/bin/java"  
+      priority: 2000 
+
+
