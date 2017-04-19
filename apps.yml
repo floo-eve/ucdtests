@@ -2,6 +2,7 @@
 - hosts: 
   - app01 
   - app02
+  - control
   remote_user: vagrant 
   become: yes 
   vars: 
@@ -9,6 +10,9 @@
     install_folder: /opt 
     java_name: "{{install_folder}}/jre1.8.0_121" 
     java_archive: "{{install_folder}}/{{java_file}}"  
+    ucda_file: ibm-ucd-agent.zip
+    ucda_install_folder: "{{install_folder}}/ibm-ucd-agent-install" 
+  
   
   tasks: 
   - name: install unzip package 
@@ -31,5 +35,35 @@
       link: /usr/bin/java 
       path: "{{java_name}}/bin/java"  
       priority: 2000 
+
+  - name: Make ucds-agent available for system 
+    unarchive: 
+      src: files/{{ucda_file}} 
+      dest: "{{install_folder}}" 
+      creates: "{{ucda_install_folder}}" 
+  
+  - name: copy install properties for ucda 
+    copy:  
+      src: files/ucda-install-minimal.properties 
+      dest: "{{ucda_install_folder}}/install.properties" 
+
+  - name: install ucda
+    environment: 
+      JAVA_HOME: "{{java_name}}" 
+    shell: "{{ucda_install_folder}}/install-agent-from-file.sh  install.properties >> /opt/install-agent.log" 
+    args:  
+      creates: /opt/ibm-ucd/agent/conf
+
+  - name: create unit File
+    copy: 
+      src:  files/ucdagent.service
+      dest: /etc/systemd/system
+
+  - name: start service
+    systemd:
+      name: ucdagent.service
+      state: started
+      enabled: True
+      daemon_reload: True
 
 

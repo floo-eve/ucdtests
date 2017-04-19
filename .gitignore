@@ -3,4 +3,4 @@
 control.pub
 *.tar.gz
 *.zip
-
+*.log

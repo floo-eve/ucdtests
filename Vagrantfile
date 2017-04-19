@@ -13,25 +13,16 @@
 Vagrant.configure(2) do |config|
   config.hostmanager.enabled = true
 
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/xenial64"
 
   config.vm.define "control", primary: true do |h|
     h.vm.network "private_network", ip: "192.168.135.10"
     h.vm.hostname = "control"
-    h.vm.provision :shell, :inline => <<'EOF'
-if [ ! -f "/home/vagrant/.ssh/id_rsa" ]; then
-  ssh-keygen -t rsa -N "" -f /home/vagrant/.ssh/id_rsa
-fi
-cp /home/vagrant/.ssh/id_rsa.pub /vagrant/control.pub
-
-cat << 'SSHEOF' > /home/vagrant/.ssh/config
-Host *
-  StrictHostKeyChecking no
-  UserKnownHostsFile=/dev/null
-SSHEOF
-
-chown -R vagrant:vagrant /home/vagrant/.ssh/
-EOF
+    h.vm.provision :shell, inline: 'command -v python > /dev/null || apt-get -y install python-minimal'
+    h.vm.provision "ansible" do |ansible| 
+      ansible.verbose = "v" 
+      ansible.playbook = "apps.yml" 
+    end 
   end
 
   config.vm.define "ucds" do |h|
@@ -43,14 +34,15 @@ EOF
       ansible.verbose = "v" 
       ansible.playbook = "install.yml" 
     end 
-    #h.vm.provision :shell, inline: 'cat /vagrant/control.pub >> /home/vagrant/.ssh/authorized_keys'
+   
   end
 
 
   config.vm.define "app01" do |h|
     h.vm.network "private_network", ip: "192.168.135.111"
-    h.vm.box = "ubuntu/trusty64"
+    h.vm.box = "ubuntu/xenial64"
     h.vm.hostname = "app01"
+    h.vm.provision :shell, inline: 'command -v python > /dev/null || apt-get -y install python-minimal'
     h.vm.provision "ansible" do |ansible| 
       ansible.verbose = "v" 
       ansible.playbook = "apps.yml" 
@@ -58,10 +50,11 @@ EOF
     
   end
 
-  config.vm.define "app02" do |h|
-    h.vm.box = "ubuntu/trusty64"
+  config.vm.define "app02", autostart=false do |h|
+    h.vm.box = "ubuntu/xenial64"
     h.vm.network "private_network", ip: "192.168.135.112"
     h.vm.hostname = "app02"
+    h.vm.provision :shell, inline: 'command -v python > /dev/null || apt-get -y install python-minimal'
     h.vm.provision "ansible" do |ansible| 
       ansible.verbose = "v" 
       ansible.playbook = "apps.yml" 
@@ -69,9 +62,13 @@ EOF
   end
 
   config.vm.define "db01" do |h|
-    h.vm.box = "ubuntu/trusty64"
+    h.vm.box = "ubuntu/xenial64"
     h.vm.network "private_network", ip: "192.168.135.121"
     h.vm.hostname = "db01"
-    h.vm.provision :shell, inline: 'cat /vagrant/control.pub >> /home/vagrant/.ssh/authorized_keys'
+      h.vm.provision "ansible" do |ansible| 
+      ansible.verbose = "v" 
+      ansible.playbook = "mysql.yml" 
+    end 
+    
   end
 end
