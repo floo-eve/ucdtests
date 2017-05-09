@@ -11,6 +11,13 @@
 # This should put you at the control host
 #  with access, by name, to other vms
 Vagrant.configure(2) do |config|
+
+config.vm.provider "virtualbox" do |v|
+  v.memory = 2048
+  v.cpus = 2
+end
+
+
   config.hostmanager.enabled = true
 
   config.vm.box = "ubuntu/xenial64"
@@ -38,7 +45,7 @@ Vagrant.configure(2) do |config|
   end
 
 
-  config.vm.define "app01" do |h|
+  config.vm.define "app01", autostart=false do |h|
     h.vm.network "private_network", ip: "192.168.135.111"
     h.vm.box = "ubuntu/xenial64"
     h.vm.hostname = "app01"
@@ -61,13 +68,14 @@ Vagrant.configure(2) do |config|
     end 
   end
 
-  config.vm.define "db01" do |h|
+  config.vm.define "db01", autostart=false do |h|
     h.vm.box = "ubuntu/xenial64"
-    h.vm.network "private_network", ip: "192.168.135.121"
+    h.vm.network "private_network", ip: "192.168.135.121" 
+    h.vm.provision :shell, inline: 'command -v python > /dev/null || apt-get -y install python-minimal'
     h.vm.hostname = "db01"
       h.vm.provision "ansible" do |ansible| 
       ansible.verbose = "v" 
-      ansible.playbook = "mysql.yml" 
+      ansible.playbook = "mysqldb.yml" 
     end 
     
   end

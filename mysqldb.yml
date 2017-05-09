@@ -1,0 +1,44 @@
+---
+- hosts: "db01"
+  remote_user: vagrant
+  become: yes
+
+  vars: 
+    mysql_version: "5.7"
+
+  tasks:
+  - name: Ensure MySQL server and supporting packages
+    apt:
+      name: "{{ item }}"
+      state: present
+      update_cache: yes
+    with_items:
+    - "mysql-server-{{ mysql_version }}"
+    - python-mysqldb
+
+  #Creates database user 'jpetstore' and password 'jppwd' with all database privileges and 'WITH GRANT OPTION'
+  - name: create user for DB
+    mysql_user:
+      name: jpetstore
+      password: 'jppwd'
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+  - name: Create a new database with name 'jpetstore'
+    mysql_db:
+      name: jpetstore
+      state: present
+
+  - name: create user for DB
+    mysql_user:
+      name: jpetstore
+      password: 'jppwd'
+      priv: 'jpetstore:ALL,GRANT'
+      state: present
+      host: app02
+
+
+
+ 
+
+  
